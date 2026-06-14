@@ -1,6 +1,6 @@
 import socket, pickle, random, threading, pygame
 
-HOST, PORT = "192.168.1.21", 12345
+HOST, PORT = "0.0.0.0", 12345
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen(1)
@@ -33,34 +33,43 @@ sprites = {
     2: {"up": dino2_up, "down": dino2_down, "left": dino2_left, "right": dino2_right}
 }
 
-# Game state
-game_state = {
-    "apple": (random.randint(50, 750), random.randint(50, 550)),
-    "traps": [],
-    "players": {
-        1: {"x": 100, "y": 100, "direction": "down", "score": 0, "scale": 1.0},
-        2: {"x": 600, "y": 400, "direction": "up", "score": 0, "scale": 1.0}
-    },
-    "stage": 1,
-    "apple_count": 0,
-    "game_over": False,
-    "dead": False,
-    "start_time": pygame.time.get_ticks(),
-    "end_time": None
-}
-
 apple_size = 30
 trap_size = 40
 apples_per_stage = 10
 max_stage = 10
 
+# Hàm reset game
+def reset_game():
+    return {
+        "apple": (random.randint(50, 750), random.randint(50, 550)),
+        "traps": [],
+        "players": {
+            1: {"x": 100, "y": 100, "direction": "down", "score": 0, "scale": 1.0},
+            2: {"x": 600, "y": 400, "direction": "up", "score": 0, "scale": 1.0}
+        },
+        "stage": 1,
+        "apple_count": 0,
+        "game_over": False,
+        "dead": False,
+        "start_time": pygame.time.get_ticks(),
+        "end_time": None
+    }
+
+game_state = reset_game()
+
 # Nhận input từ client
 def handle_client():
+    global game_state
     while True:
         try:
             data = conn.recv(1024)
             if data:
                 move = pickle.loads(data)
+                # Nếu client gửi tín hiệu reset
+                if move.get("reset"):
+                    game_state = reset_game()
+                    continue
+                # Input Player 2
                 p = game_state["players"][2]
                 if move.get("left"):  p["x"] -= 5; p["direction"]="left"
                 if move.get("right"): p["x"] += 5; p["direction"]="right"
@@ -78,20 +87,21 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Input cho Player 1
-    keys = pygame.key.get_pressed()
-    p1 = game_state["players"][1]
-    if keys[pygame.K_LEFT]:  p1["x"] -= 5; p1["direction"]="left"
-    if keys[pygame.K_RIGHT]: p1["x"] += 5; p1["direction"]="right"
-    if keys[pygame.K_UP]:    p1["y"] -= 5; p1["direction"]="up"
-    if keys[pygame.K_DOWN]:  p1["y"] += 5; p1["direction"]="down"
+    # Input cho Player 1 (chỉ khi chưa kết thúc)
+    if not game_state["game_over"] and not game_state["dead"]:
+        keys = pygame.key.get_pressed()
+        p1 = game_state["players"][1]
+        if keys[pygame.K_LEFT]:  p1["x"] -= 5; p1["direction"]="left"
+        if keys[pygame.K_RIGHT]: p1["x"] += 5; p1["direction"]="right"
+        if keys[pygame.K_UP]:    p1["y"] -= 5; p1["direction"]="up"
+        if keys[pygame.K_DOWN]:  p1["y"] += 5; p1["direction"]="down"
 
     # Logic ăn táo
     ax, ay = game_state["apple"]
     for pid, p in game_state["players"].items():
         rect = pygame.Rect(p["x"], p["y"], int(40*p["scale"]), int(40*p["scale"]))
         apple_rect = pygame.Rect(ax, ay, apple_size, apple_size)
-        if rect.colliderect(apple_rect):
+        if rect.colliderect(apple_rect) and not game_state["game_over"] and not game_state["dead"]:
             p["score"] += 1
             p["scale"] *= 1.01
             game_state["apple_count"] += 1
@@ -109,7 +119,7 @@ while running:
         rect = pygame.Rect(p["x"], p["y"], int(40*p["scale"]), int(40*p["scale"]))
         for tx, ty in game_state["traps"]:
             trap_rect = pygame.Rect(tx, ty, trap_size, trap_size)
-            if rect.colliderect(trap_rect):
+            if rect.colliderect(trap_rect) and not game_state["game_over"]:
                 game_state["dead"] = True
                 game_state["end_time"] = pygame.time.get_ticks()
 
@@ -118,7 +128,7 @@ while running:
     for tx, ty in game_state["traps"]:
         screen.blit(trap_img, (tx, ty))
 
-    # Vẽ khủng long bằng sprite riêng cho từng player
+    # Vẽ khủng long
     for pid, p in game_state["players"].items():
         dino_img = sprites[pid].get(p["direction"], sprites[pid]["down"])
         size = int(40*p["scale"])
