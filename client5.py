@@ -18,6 +18,7 @@ def receive_data():
             game_state = pickle.loads(data)
         except:
             break
+
 threading.Thread(target=receive_data, daemon=True).start()
 
 pygame.init()
@@ -117,8 +118,9 @@ while running:
             screen.blit(replay_text, (WIDTH//2 - 40, HEIGHT//2 + 30))
 
         elif game_state["dead"]:
-            msg = font_big.render("Bạn đã chết!", True, (255,0,0))
-            screen.blit(msg, (WIDTH//2 - 100, HEIGHT//2 - 50))
+            pid = game_state.get("dead_player", "?")
+            msg = font_big.render(f"Player {pid} đã chết!", True, (255,0,0))
+            screen.blit(msg, (WIDTH//2 - 120, HEIGHT//2 - 50))
             replay_text = font_big.render("Chơi lại", True, (255,255,255))
             replay_button = pygame.Rect(WIDTH//2 - 60, HEIGHT//2 + 20, 120, 50)
             pygame.draw.rect(screen, (0,128,0), replay_button)

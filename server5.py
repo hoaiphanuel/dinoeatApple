@@ -68,6 +68,7 @@ def reset_game():
         "apple_count": 0,
         "game_over": False,
         "dead": False,
+        "dead_player": None,
         "start_time": pygame.time.get_ticks(),
         "end_time": None
     }
@@ -149,8 +150,9 @@ while running:
         rect = pygame.Rect(p["x"], p["y"], int(40*p["scale"]), int(40*p["scale"]))
         for tx, ty in game_state["traps"]:
             trap_rect = pygame.Rect(tx, ty, trap_size, trap_size)
-            if rect.colliderect(trap_rect) and not game_state["game_over"]:
+            if rect.colliderect(trap_rect) and not game_state["game_over"] and not game_state["dead"]:
                 game_state["dead"] = True
+                game_state["dead_player"] = pid
                 game_state["end_time"] = pygame.time.get_ticks()
 
     # Vẽ táo và trap
@@ -167,13 +169,22 @@ while running:
         score_text = font.render(f"Player {pid} Score: {p['score']}", True, (0,0,0))
         screen.blit(score_text, (10, 10 + 20*pid))
 
-    # Hiển thị đồng hồ (dừng lại khi end_time có giá trị)
+    # Hiển thị đồng hồ
     if not game_state["end_time"]:
         current_time = (pygame.time.get_ticks() - game_state["start_time"]) / 1000
     else:
         current_time = (game_state["end_time"] - game_state["start_time"]) / 1000
     timer_text = font.render(f"Time: {current_time:.2f}s", True, (0,0,0))
     screen.blit(timer_text, (WIDTH-250, 40))
+
+    # Thông báo kết thúc
+    if game_state["game_over"]:
+        msg = font.render("Hoàn thành tất cả stage!", True, (0, 128, 0))
+        screen.blit(msg, (WIDTH // 2 - 150, HEIGHT // 2))
+    elif game_state["dead"]:
+        pid = game_state.get("dead_player", "?")
+        msg = font.render(f"Player {pid} đã chết!", True, (255, 0, 0))
+        screen.blit(msg, (WIDTH // 2 - 120, HEIGHT // 2))
 
     pygame.display.flip()
     clock.tick(30)
