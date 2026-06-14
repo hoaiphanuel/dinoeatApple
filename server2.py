@@ -14,6 +14,21 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 font = pygame.font.Font("tahoma.ttf", 18)
 
+# Tải sprite khủng long và vật thể
+dino_up = pygame.image.load("dino_up.png")
+dino_down = pygame.image.load("dino_down.png")
+dino_left = pygame.image.load("dino_left.png")
+dino_right = pygame.image.load("dino_right.png")
+apple_img = pygame.image.load("apple.png")
+trap_img = pygame.image.load("trap.png")
+
+sprites = {
+    "up": dino_up,
+    "down": dino_down,
+    "left": dino_left,
+    "right": dino_right
+}
+
 # Game state
 game_state = {
     "apple": (random.randint(50, 750), random.randint(50, 550)),
@@ -94,14 +109,17 @@ while running:
                 game_state["dead"] = True
                 game_state["end_time"] = pygame.time.get_ticks()
 
-    # Vẽ đơn giản (server cũng hiển thị)
-    pygame.draw.circle(screen, (255,0,0), game_state["apple"], 15)
+    # Vẽ táo và trap
+    screen.blit(apple_img, game_state["apple"])
     for tx, ty in game_state["traps"]:
-        pygame.draw.rect(screen, (100,100,100), (tx, ty, trap_size, trap_size))
+        screen.blit(trap_img, (tx, ty))
+
+    # Vẽ khủng long bằng sprite
     for pid, p in game_state["players"].items():
-        color = (0,255,0) if pid==1 else (255,0,0)
+        dino_img = sprites.get(p["direction"], dino_down)
         size = int(40*p["scale"])
-        pygame.draw.rect(screen, color, (p["x"], p["y"], size, size))
+        dino_scaled = pygame.transform.scale(dino_img, (size, size))
+        screen.blit(dino_scaled, (p["x"], p["y"]))
         score_text = font.render(f"Player {pid} Score: {p['score']}", True, (0,0,0))
         screen.blit(score_text, (10, 10 + 20*pid))
 
