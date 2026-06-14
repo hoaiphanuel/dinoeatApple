@@ -1,6 +1,6 @@
 import socket, pickle, pygame, threading
 
-HOST, PORT = "192.168.1.21", 12345  # IP server
+HOST, PORT = "192.168.1.21", 12345  # IP của server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
 print("Đã kết nối tới server")
@@ -28,7 +28,7 @@ clock = pygame.time.Clock()
 font_small = pygame.font.Font("tahoma.ttf", 18)
 font_big = pygame.font.Font("tahoma.ttf", 36)
 
-# Tải sprite khủng long xanh (Player 1) và đỏ (Player 2)
+# Tải sprite
 dino1_up = pygame.image.load("dino_green_up.png")
 dino1_down = pygame.image.load("dino_green_down.png")
 dino1_left = pygame.image.load("dino_green_left.png")
@@ -60,7 +60,6 @@ while running:
         if (game_state.get("game_over") or game_state.get("dead")) and event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
             if replay_button and replay_button.collidepoint(mouse_x, mouse_y):
-                # gửi tín hiệu reset về server
                 client.sendall(pickle.dumps({"reset": True}))
 
     # Input Player 2 (chỉ khi chưa kết thúc)
@@ -94,7 +93,7 @@ while running:
             dino_scaled = pygame.transform.scale(dino_img, (size, size))
             screen.blit(dino_scaled, (p["x"], p["y"]))
 
-            score_text = font_small.render(f"Player {pid} Score: {p['score']}", True, (0,0,0))
+            score_text = font_small.render(f"{p['name']} Score: {p['score']}", True, (0,0,0))
             screen.blit(score_text, (10, 10 + 20*pid))
 
         # Stage và thời gian
@@ -118,8 +117,12 @@ while running:
             screen.blit(replay_text, (WIDTH//2 - 40, HEIGHT//2 + 30))
 
         elif game_state["dead"]:
-            pid = game_state.get("dead_player", "?")
-            msg = font_big.render(f"Player {pid} đã chết!", True, (255,0,0))
+            pid = game_state.get("dead_player")
+            if pid:
+                name = game_state["players"][pid]["name"]
+            else:
+                name = "?"
+            msg = font_big.render(f"{name} đã chết!", True, (255,0,0))
             screen.blit(msg, (WIDTH//2 - 120, HEIGHT//2 - 50))
             replay_text = font_big.render("Chơi lại", True, (255,255,255))
             replay_button = pygame.Rect(WIDTH//2 - 60, HEIGHT//2 + 20, 120, 50)
