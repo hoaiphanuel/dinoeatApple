@@ -1,7 +1,7 @@
 import socket, pickle
 import pygame
 
-HOST = "127.0.0.1"   # IP của server
+HOST = "192.168.1.21"   # IP của server
 PORT = 12345
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,7 +22,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Lấy input từ bàn phím
+    # Input từ bàn phím cho Player 2
     keys = pygame.key.get_pressed()
     move = {
         "left": keys[pygame.K_LEFT],
