@@ -167,6 +167,14 @@ while running:
         score_text = font.render(f"Player {pid} Score: {p['score']}", True, (0,0,0))
         screen.blit(score_text, (10, 10 + 20*pid))
 
+    # Hiển thị đồng hồ (dừng lại khi end_time có giá trị)
+    if not game_state["end_time"]:
+        current_time = (pygame.time.get_ticks() - game_state["start_time"]) / 1000
+    else:
+        current_time = (game_state["end_time"] - game_state["start_time"]) / 1000
+    timer_text = font.render(f"Time: {current_time:.2f}s", True, (0,0,0))
+    screen.blit(timer_text, (WIDTH-250, 40))
+
     pygame.display.flip()
     clock.tick(30)
 

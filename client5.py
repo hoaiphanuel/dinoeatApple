@@ -18,7 +18,6 @@ def receive_data():
             game_state = pickle.loads(data)
         except:
             break
-
 threading.Thread(target=receive_data, daemon=True).start()
 
 pygame.init()
