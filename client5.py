@@ -1,8 +1,9 @@
 import socket, pickle, pygame, threading
 
-HOST, PORT = "192.168.1.21", 12345  # IP của server
+HOST, PORT = "192.168.1.21", 12345  # IP server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
+client.settimeout(0.1)  # tránh recv bị block vô hạn
 print("Đã kết nối tới server")
 
 game_state = {}
@@ -16,6 +17,8 @@ def receive_data():
             if not data:
                 break
             game_state = pickle.loads(data)
+        except socket.timeout:
+            continue
         except:
             break
 
