@@ -1,6 +1,6 @@
 import socket, pickle, random, threading, pygame
 
-HOST, PORT = "0.0.0.0", 12345
+HOST, PORT = "192.168.1.21", 12345
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen(1)

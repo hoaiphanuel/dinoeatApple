@@ -7,6 +7,7 @@ print("Đã kết nối tới server")
 
 game_state = {}
 
+# Thread nhận dữ liệu từ server
 def receive_data():
     global game_state
     while True:
